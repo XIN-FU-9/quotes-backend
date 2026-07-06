@@ -30,4 +30,5 @@ const Quote = dbConnection.define("quote", {
 //
 //   4. Export the model
 module.exports = Quote;
+// this export a file not a object, don't use the destructure syntex {Quote}
 // ============================================================

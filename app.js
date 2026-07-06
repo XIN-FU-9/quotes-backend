@@ -26,7 +26,9 @@ const db = require("./db");
 
 // Importing Quote here registers it with the connection so
 // db.sync() below knows to create the Quotes table.
-const { Quote } = require("./models/quote");
+// this export a file not a object, don't use the destructure syntex {Quote}
+// we can go back to db folder to check the index.js, at the last line.
+const Quote = require("./models/quote"); // the name can be same, but it is not necessary.
 
 // So now that we have the db, let's sync first before we start our api server
 // Jump to the last line for STEP 2
@@ -51,6 +53,9 @@ app.use(cors()); // allows the React frontend to call this server
 // ------------------------------------------------------------
 app.get("/api/quotes", async (req, res, next) => {
   try {
+    const getAllQuote = await Quote.findAll();
+    // here need add more code
+    res.json(getAllQuote);
   } catch (error) {
     next(error);
   }
@@ -68,6 +73,10 @@ app.get("/api/quotes", async (req, res, next) => {
 // ------------------------------------------------------------
 app.post("/api/quotes", async (req, res, next) => {
   try {
+    const createQuote = await Quote.create({
+      ...req.body,
+    });
+    res.status(201).json(createQuote);
   } catch (error) {
     next(error);
   }
@@ -87,6 +96,15 @@ app.post("/api/quotes", async (req, res, next) => {
 // ------------------------------------------------------------
 app.delete("/api/quotes/:id", async (req, res, next) => {
   try {
+    const id = Number(req.params.id);
+    const quote = await quetoe.findByPk(id);
+
+    if (!quote) {
+      return res.status(404).send("no quotes found");
+    }
+    // this for delete.
+    quote.destroy();
+    res.sendStatus(204);
   } catch (error) {
     next(error);
   }
@@ -120,8 +138,23 @@ app.use((error, req, res, next) => {
 async function startApp() {
   // connect to your db here before the express server listens
   try {
+    await db.sync(); // we have to wait, until db connected, then run next line.
+
+    // class note:
+    // second way to code, when we don't add the async on the function.sync(),
+    // db.sync()
+    // .then() =>{},
+    // .catch(er => {})
+
+    // so the sync have to wrap up in a async function
+    //async function dosomething() {
+    // db.sync()
+    // .then() =>{},
+    // .catch(er => {})
+    //}
+    // end
+
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-    await db.sync();
     console.log("Synced database!");
   } catch (error) {
     console.error("Failed syned Database!");
